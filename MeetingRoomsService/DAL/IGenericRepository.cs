@@ -13,5 +13,6 @@ namespace MeetingRoomsService.DAL
         public Task<T> AddAsync(T entity);
         public Task<T> UpdateAsync(T entity);
         public Task<T> Delete(object id);
+        public IQueryable<T> Query();
     }
 }

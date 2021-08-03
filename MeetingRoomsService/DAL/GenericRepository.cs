@@ -110,5 +110,10 @@ namespace MeetingRoomsService.DAL
 
             return entity;
         }
+
+        public IQueryable<TEntity> Query()
+        {
+            return dbset.AsQueryable();
+        }
     }
 }
