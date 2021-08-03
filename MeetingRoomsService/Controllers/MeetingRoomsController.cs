@@ -42,7 +42,7 @@ namespace MeetingRoomsService.Controllers
         {
             await _genericRepository.AddAsync(meetingRoom);
 
-            return CreatedAtAction("GetMeetingRoom", new { id = meetingRoom.MeetingRoomID }, meetingRoom);
+            return CreatedAtAction("GetMeetingRoom", new { id = meetingRoom.MeetingRoomId }, meetingRoom);
         }
 
         // DELETE: api/MeetingRooms/5
@@ -58,7 +58,7 @@ namespace MeetingRoomsService.Controllers
         public async Task<ActionResult<MeetingRoom>> UpdateAsync(MeetingRoom meetingRoom)
         {
             await _genericRepository.UpdateAsync(meetingRoom);
-            return CreatedAtAction("GetMeetingRoom", new { id = meetingRoom.MeetingRoomID }, meetingRoom);
+            return CreatedAtAction("GetMeetingRoom", new { id = meetingRoom.MeetingRoomId }, meetingRoom);
         }
     }
 }

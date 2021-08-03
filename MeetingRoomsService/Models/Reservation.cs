@@ -8,8 +8,8 @@ namespace MeetingRoomsService.Models
     public class Reservation
     {
         public int ReservationId { get; set; }
-        public int UserID { get; set; }
-        public int MeetingRoomID { get; set; }
+        public int UserId { get; set; }
+        public int MeetingRoomId { get; set; }
         public DateTime TimeFrom { get; set; }
         public DateTime TimeTo { get; set; }
 
