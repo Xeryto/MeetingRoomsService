@@ -7,7 +7,7 @@ namespace MeetingRoomsService.Models
 {
     public class MeetingRoom
     {
-        public int MeetingRoomId { get; set; }
+        public int Id { get; set; }
         public string Name { get; set; }
     }
 }

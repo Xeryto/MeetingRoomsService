@@ -5,15 +5,12 @@ using System.Threading.Tasks;
 
 namespace MeetingRoomsService.Models
 {
-    public class Reservation
+    public class ReservationUpdateModel
     {
         public int Id { get; set; }
         public int UserId { get; set; }
         public int MeetingRoomId { get; set; }
-        public DateTime TimeFrom { get; set; }
-        public DateTime TimeTo { get; set; }
-
-        public MeetingRoom MeetingRoom { get; set; }
-        public User User { get; set; }
+        public DateTime From { get; set; }
+        public DateTime To { get; set; }
     }
 }

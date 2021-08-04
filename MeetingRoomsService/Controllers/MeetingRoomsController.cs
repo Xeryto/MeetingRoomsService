@@ -38,27 +38,49 @@ namespace MeetingRoomsService.Controllers
         // POST: api/MeetingRooms
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<MeetingRoom>> PostMeetingRoom(MeetingRoom meetingRoom)
+        public async Task<IActionResult> PostMeetingRoom(MeetingRoom meetingRoom)
         {
             await _genericRepository.AddAsync(meetingRoom);
 
-            return CreatedAtAction("GetMeetingRoom", new { id = meetingRoom.MeetingRoomId }, meetingRoom);
+            return Ok(meetingRoom.Id);
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> Delete(int id, string name)
+        {
+            if (name == null)
+            {
+                await DeleteMeetingRoomById(id);
+            }
+            else if (id == 0)
+            {
+                await DeleteMeetingRoomByName(name);
+            }
+            return Ok();
         }
 
         // DELETE: api/MeetingRooms/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteMeetingRoom(int id)
+        //[HttpDelete("{id}")]
+        private async Task<IActionResult> DeleteMeetingRoomById(int id)
         {
             await _genericRepository.Delete(id);
 
-            return NoContent();
+            return Ok();
+        }
+
+        private async Task<IActionResult> DeleteMeetingRoomByName(string name)
+        {
+            var meetingRoomId = await _genericRepository.Query().Where(x => x.Name == name).Select(x => x.Id).FirstOrDefaultAsync();
+            await _genericRepository.Delete(meetingRoomId);
+
+            return Ok();
         }
 
         [HttpPatch]
-        public async Task<ActionResult<MeetingRoom>> UpdateAsync(MeetingRoom meetingRoom)
+        public async Task<IActionResult> UpdateAsync(MeetingRoom meetingRoom)
         {
             await _genericRepository.UpdateAsync(meetingRoom);
-            return CreatedAtAction("GetMeetingRoom", new { id = meetingRoom.MeetingRoomId }, meetingRoom);
+            return Ok(meetingRoom.Id);
         }
     }
 }

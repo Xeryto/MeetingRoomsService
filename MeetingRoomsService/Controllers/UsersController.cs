@@ -38,27 +38,52 @@ namespace MeetingRoomsService.Controllers
         // POST: api/Users
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<User>> PostUser(User user)
+        public async Task<IActionResult> PostUser(User user)
         {
             await _genericRepository.AddAsync(user);
 
-            return CreatedAtAction("GetUser", new { id = user.UserId }, user);
+            return Ok(user.Id);
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> Delete(int id, string name)
+        {
+            if (name == null)
+            {
+                await DeleteUser(id);
+            }
+            else if (id == 0)
+            {
+                await DeleteUserByName(name);
+            }
+
+            return Ok();
         }
 
         // DELETE: api/Users/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUser(int id)
+        //[HttpDelete("{id}")]
+        private async Task<IActionResult> DeleteUser(int id)
         {
             await _genericRepository.Delete(id);
 
-            return NoContent();
+            return Ok();
+        }
+
+        //[HttpDelete("{name}")]
+        private async Task<IActionResult> DeleteUserByName(string name)
+        {
+            var userId = await _genericRepository.Query().Where(x => x.Name == name).Select(x => x.Id).FirstOrDefaultAsync();
+            if (userId == 0) return Ok("No such user");
+            await _genericRepository.Delete(userId);
+
+            return Ok();
         }
 
         [HttpPatch]
-        public async Task<ActionResult<User>> UpdateUser(User user)
+        public async Task<IActionResult> UpdateUser(User user)
         {
             await _genericRepository.UpdateAsync(user);
-            return CreatedAtAction("GetUser", new { id = user.UserId }, user);
+            return Ok(user.Id);
         }
     }
 }
