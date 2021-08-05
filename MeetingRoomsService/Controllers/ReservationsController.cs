@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MeetingRoomsService.DAL;
 using MeetingRoomsService.Models;
+using Swashbuckle.AspNetCore.Annotations;
+using AutoMapper;
 
 namespace MeetingRoomsService.Controllers
 {
@@ -29,6 +31,7 @@ namespace MeetingRoomsService.Controllers
 
         // GET: api/Reservations
         [HttpGet]
+        [SwaggerResponse(StatusCodes.Status200OK, Type = typeof(IEnumerable<Reservation>))]
         public async Task<ActionResult<IEnumerable<Reservation>>> GetReservations()
         {
             return await _genericRepository.Query().Include(x => x.MeetingRoom).
@@ -37,6 +40,7 @@ namespace MeetingRoomsService.Controllers
 
         // GET: api/Reservations/5
         [HttpGet("{id}")]
+        [SwaggerResponse(StatusCodes.Status200OK, Type = typeof(Reservation))]
         public async Task<ActionResult<Reservation>> GetReservation(int id)
         {
             return await _genericRepository.Query().Include(x => x.MeetingRoom).
@@ -47,12 +51,17 @@ namespace MeetingRoomsService.Controllers
         // POST: api/Reservations
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
+        [SwaggerResponse(StatusCodes.Status200OK, Type = typeof(int))]
+        [SwaggerResponse(StatusCodes.Status409Conflict, Type = typeof(string))]
         public async Task<IActionResult> PostReservation(ReservationPostModel reserve)
         {
+            var config = new MapperConfiguration(cfg => cfg.CreateMap<ReservationPostModel, ReservationUpdateModel>().ForMember(m => m.Id, opt => opt.NullSubstitute(0)));
+            var mapper = new Mapper(config);
+            var reserveMapped = mapper.Map<ReservationPostModel, ReservationUpdateModel>(reserve);
+            if (await checkInitialTime(reserveMapped)) return Conflict("Choose appropriate time");
+            if (await checkReserved(reserveMapped)) return Conflict("Time is taken");
             var user = await _userRepository.GetByIdAsync(reserve.UserId);
             var room = await _meetingRoomRepository.GetByIdAsync(reserve.MeetingRoomId);
-            if (reserve.From < DateTime.Now || reserve.To < reserve.From || 
-                reserve.From.Subtract(reserve.To) > MaximumReservationTime) return Ok("Choose appropriate time and date");
             var reservation = new Reservation
             {
                 User = user,
@@ -60,13 +69,6 @@ namespace MeetingRoomsService.Controllers
                 TimeFrom = reserve.From,
                 TimeTo = reserve.To
             };
-            var res = await _genericRepository.Query().Where(x => x.MeetingRoomId == reserve.MeetingRoomId).ToListAsync();
-            foreach (var r in res)
-            {
-                if ((reservation.TimeFrom <= r.TimeFrom && r.TimeFrom < r.TimeTo) ||
-                    (reservation.TimeFrom < r.TimeTo && r.TimeTo < reservation.TimeTo)) return Ok("Time is taken");
-            }
-
             await _genericRepository.AddAsync(reservation);
 
             return Ok(reservation.Id);
@@ -74,20 +76,24 @@ namespace MeetingRoomsService.Controllers
 
         // DELETE: api/Reservations/5
         [HttpDelete("{id}")]
+        [SwaggerResponse(StatusCodes.Status200OK)]
         public async Task<IActionResult> DeleteReservation(int id)
         {
             await _genericRepository.Delete(id);
 
-            return NoContent();
+            return Ok();
         }
 
         [HttpPatch]
+        [SwaggerResponse(StatusCodes.Status200OK, Type = typeof(int))]
+        [SwaggerResponse(StatusCodes.Status409Conflict, Type = typeof(string))]
         public async Task<IActionResult> UpdateAsync(ReservationUpdateModel reserve)
         {
+            if (reserve.Id == 0) return Conflict("Reservation with id 0 doesn't exist");
+            if (await checkInitialTime(reserve)) return Conflict("Choose appropriate time");
+            if (await checkReserved(reserve)) return Conflict("Time is taken");
             var user = await _userRepository.GetByIdAsync(reserve.UserId);
             var room = await _meetingRoomRepository.GetByIdAsync(reserve.MeetingRoomId);
-            if (reserve.From < DateTime.Now || reserve.To < reserve.From ||
-               reserve.From.Subtract(reserve.To) > MaximumReservationTime) return Ok("Choose appropriate time and date");
             var reservation = new Reservation
             {
                 Id = reserve.Id,
@@ -96,16 +102,37 @@ namespace MeetingRoomsService.Controllers
                 TimeFrom = reserve.From,
                 TimeTo = reserve.To
             };
-            var res = await _genericRepository.Query().Where(x => x.MeetingRoomId == reserve.MeetingRoomId).ToListAsync();
-            foreach (var r in res)
-            {
-                if ((reservation.TimeFrom <= r.TimeFrom && r.TimeFrom < r.TimeTo) ||
-                    (reservation.TimeFrom < r.TimeTo && r.TimeTo < reservation.TimeTo)) return Ok("Time is taken");
-            }
 
             await _genericRepository.UpdateAsync(reservation);
             return Ok(reservation.Id);
         }
        
+        private async Task<Boolean> checkInitialTime(ReservationUpdateModel reserve)
+        {
+            if (reserve.From < DateTime.Now || reserve.To < reserve.From || reserve.To.Subtract(reserve.From) > MaximumReservationTime)
+                return true;
+
+            return false;
+        }
+
+        private async Task<Boolean> checkReserved(ReservationUpdateModel reserve)
+        {
+            List<Reservation> res;
+            if (reserve.Id == 0)
+            {
+                res = await _genericRepository.Query()
+                    .Where(x => x.MeetingRoomId == reserve.MeetingRoomId && x.TimeFrom < reserve.To && x.TimeTo > reserve.From)
+                    .ToListAsync();
+            }
+            else
+            {
+                res = await _genericRepository.Query()
+                    .Where(x => x.MeetingRoomId == reserve.MeetingRoomId && x.TimeFrom < reserve.To && x.TimeTo > reserve.From && x.Id != reserve.Id)
+                    .ToListAsync();
+            }
+            if (res.Any()) return true;
+
+            return false;
+        }
     }
 }
