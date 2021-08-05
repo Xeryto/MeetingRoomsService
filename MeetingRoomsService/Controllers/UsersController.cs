@@ -53,38 +53,38 @@ namespace MeetingRoomsService.Controllers
             return Ok(user.Id);
         }
 
-        [HttpDelete]
-        [SwaggerResponse(StatusCodes.Status409Conflict, Type = typeof(string))]
-        [SwaggerResponse(StatusCodes.Status200OK)]
-        public async Task<IActionResult> Delete(int id, string name, string login)
-        {
-            if (name == null && login == null)
-            {
-                await DeleteUser(id);
-            }
-            else if (id == 0 && login == null)
-            {
-                await DeleteUserByName(name);
-            }
-            else if (id == 0 && name == null)
-            {
-                await DeleteUserByLogin(login);
-            }
+        //[HttpDelete]
+        //[SwaggerResponse(StatusCodes.Status409Conflict, Type = typeof(string))]
+        //[SwaggerResponse(StatusCodes.Status200OK)]
+        //public async Task<IActionResult> Delete(int id, string name, string login)
+        //{
+        //    if (name == null && login == null)
+        //    {
+        //        await DeleteUser(id);
+        //    }
+        //    else if (id == 0 && login == null)
+        //    {
+        //        await DeleteUserByName(name);
+        //    }
+        //    else if (id == 0 && name == null)
+        //    {
+        //        await DeleteUserByLogin(login);
+        //    }
 
-            return Conflict("Not correct data given");
-        }
+        //    return Conflict("Not correct data given");
+        //}
 
         // DELETE: api/Users/5
-        //[HttpDelete("{id}")]
-        private async Task<IActionResult> DeleteUser(int id)
+        [HttpDelete("byId/{id}")]
+        public async Task<IActionResult> DeleteUser(int id)
         {
             await _genericRepository.Delete(id);
 
             return Ok();
         }
 
-        //[HttpDelete("{name}")]
-        private async Task<IActionResult> DeleteUserByName(string name)
+        [HttpDelete("byName/{name}")]
+        public async Task<IActionResult> DeleteUserByName(string name)
         {
             var userId = await _genericRepository.Query().Where(x => x.Name == name).Select(x => x.Id).FirstOrDefaultAsync();
             if (userId == 0) return Conflict("No such user");
@@ -93,7 +93,8 @@ namespace MeetingRoomsService.Controllers
             return Ok();
         }
 
-        private async Task<IActionResult> DeleteUserByLogin(string login)
+        [HttpDelete("byLogin/{login}")]
+        public async Task<IActionResult> DeleteUserByLogin(string login)
         {
             var userId = await _genericRepository.Query().Where(x => x.Login == login).Select(x => x.Id).FirstOrDefaultAsync();
             if (userId == 0) return Conflict("No such user");

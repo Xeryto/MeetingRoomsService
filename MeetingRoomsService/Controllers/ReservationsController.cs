@@ -58,7 +58,7 @@ namespace MeetingRoomsService.Controllers
             var config = new MapperConfiguration(cfg => cfg.CreateMap<ReservationPostModel, ReservationUpdateModel>().ForMember(m => m.Id, opt => opt.NullSubstitute(0)));
             var mapper = new Mapper(config);
             var reserveMapped = mapper.Map<ReservationPostModel, ReservationUpdateModel>(reserve);
-            if (await checkInitialTime(reserveMapped)) return Conflict("Choose appropriate time");
+            if (checkInitialTime(reserveMapped)) return Conflict("Choose appropriate time");
             if (await checkReserved(reserveMapped)) return Conflict("Time is taken");
             var user = await _userRepository.GetByIdAsync(reserve.UserId);
             var room = await _meetingRoomRepository.GetByIdAsync(reserve.MeetingRoomId);
@@ -90,7 +90,7 @@ namespace MeetingRoomsService.Controllers
         public async Task<IActionResult> UpdateAsync(ReservationUpdateModel reserve)
         {
             if (reserve.Id == 0) return Conflict("Reservation with id 0 doesn't exist");
-            if (await checkInitialTime(reserve)) return Conflict("Choose appropriate time");
+            if (checkInitialTime(reserve)) return Conflict("Choose appropriate time");
             if (await checkReserved(reserve)) return Conflict("Time is taken");
             var user = await _userRepository.GetByIdAsync(reserve.UserId);
             var room = await _meetingRoomRepository.GetByIdAsync(reserve.MeetingRoomId);
@@ -106,33 +106,21 @@ namespace MeetingRoomsService.Controllers
             await _genericRepository.UpdateAsync(reservation);
             return Ok(reservation.Id);
         }
-       
-        private async Task<Boolean> checkInitialTime(ReservationUpdateModel reserve)
-        {
-            if (reserve.From < DateTime.Now || reserve.To < reserve.From || reserve.To.Subtract(reserve.From) > MaximumReservationTime)
-                return true;
 
-            return false;
+        //public async
+       
+        private bool checkInitialTime(ReservationUpdateModel reserve)
+        {
+            return (reserve.From < DateTime.Now || reserve.To < reserve.From || reserve.To.Subtract(reserve.From) > MaximumReservationTime);
         }
 
-        private async Task<Boolean> checkReserved(ReservationUpdateModel reserve)
+        private Task<bool> checkReserved(ReservationUpdateModel reserve)
         {
-            List<Reservation> res;
-            if (reserve.Id == 0)
-            {
-                res = await _genericRepository.Query()
-                    .Where(x => x.MeetingRoomId == reserve.MeetingRoomId && x.TimeFrom < reserve.To && x.TimeTo > reserve.From)
-                    .ToListAsync();
-            }
-            else
-            {
-                res = await _genericRepository.Query()
-                    .Where(x => x.MeetingRoomId == reserve.MeetingRoomId && x.TimeFrom < reserve.To && x.TimeTo > reserve.From && x.Id != reserve.Id)
-                    .ToListAsync();
-            }
-            if (res.Any()) return true;
-
-            return false;
+            var query = _genericRepository.Query()
+                    .Where(x => x.MeetingRoomId == reserve.MeetingRoomId && x.TimeFrom < reserve.To && x.TimeTo > reserve.From);
+            if (reserve.Id != 0)
+                query = query.Where(x => x.Id != reserve.Id);
+            return query.AnyAsync();
         }
     }
 }

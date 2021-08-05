@@ -32,7 +32,7 @@ namespace MeetingRoomsService
             services.AddTransient(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
             services.AddControllers();
-            services.AddDbContext<MeetingRoomContext>(builder => builder.UseSqlServer("Data Source=(local);Initial Catalog=ServiceTest; Integrated Security=True"));
+            services.AddDbContext<MeetingRoomContext>(builder => builder.UseSqlServer("Data Source=(local);Initial Catalog=MeetingRoomsService; Integrated Security=True"));
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "MeetingRoomsService", Version = "v1" });
