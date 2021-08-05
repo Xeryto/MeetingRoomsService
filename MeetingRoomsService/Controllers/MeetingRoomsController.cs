@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MeetingRoomsService.DAL;
 using MeetingRoomsService.Models;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace MeetingRoomsService.Controllers
 {
@@ -23,6 +24,7 @@ namespace MeetingRoomsService.Controllers
 
         // GET: api/MeetingRooms
         [HttpGet]
+        [SwaggerResponse(StatusCodes.Status200OK, Type = typeof(IEnumerable<MeetingRoom>))]
         public async Task<ActionResult<IEnumerable<MeetingRoom>>> GetMeetingRooms()
         {
             return await _genericRepository.GetAllAsync();
@@ -30,6 +32,7 @@ namespace MeetingRoomsService.Controllers
 
         // GET: api/MeetingRooms/5
         [HttpGet("{id}")]
+        [SwaggerResponse(StatusCodes.Status200OK, Type = typeof(MeetingRoom))]
         public async Task<ActionResult<MeetingRoom>> GetMeetingRoom(int id)
         {
             return await _genericRepository.GetByIdAsync(id);
@@ -38,6 +41,7 @@ namespace MeetingRoomsService.Controllers
         // POST: api/MeetingRooms
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
+        [SwaggerResponse(StatusCodes.Status200OK, Type = typeof(int))]
         public async Task<IActionResult> PostMeetingRoom(MeetingRoom meetingRoom)
         {
             await _genericRepository.AddAsync(meetingRoom);
@@ -46,6 +50,7 @@ namespace MeetingRoomsService.Controllers
         }
 
         [HttpDelete]
+        [SwaggerResponse(StatusCodes.Status200OK)]
         public async Task<IActionResult> Delete(int id, string name)
         {
             if (name == null)
@@ -77,6 +82,7 @@ namespace MeetingRoomsService.Controllers
         }
 
         [HttpPatch]
+        [SwaggerResponse(StatusCodes.Status200OK, Type = typeof(int))]
         public async Task<IActionResult> UpdateAsync(MeetingRoom meetingRoom)
         {
             await _genericRepository.UpdateAsync(meetingRoom);
