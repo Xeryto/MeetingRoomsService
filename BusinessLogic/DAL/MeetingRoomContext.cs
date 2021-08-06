@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using MeetingRoomsService.Models;
+﻿using BusinessLogic.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace MeetingRoomsService.DAL
+namespace BusinessLogic.DAL
 {
     public class MeetingRoomContext : DbContext
     {

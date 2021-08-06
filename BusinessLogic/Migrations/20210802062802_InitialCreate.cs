@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace MeetingRoomsService.Migrations
+namespace BusinessLogic.Migrations
 {
     public partial class InitialCreate : Migration
     {

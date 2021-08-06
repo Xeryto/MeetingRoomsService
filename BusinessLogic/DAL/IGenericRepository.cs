@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace MeetingRoomsService.DAL
+namespace BusinessLogic.DAL
 {
     public interface IGenericRepository<T> : IDisposable
     {

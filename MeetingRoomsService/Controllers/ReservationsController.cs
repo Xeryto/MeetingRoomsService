@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using MeetingRoomsService.DAL;
-using MeetingRoomsService.Models;
 using Swashbuckle.AspNetCore.Annotations;
 using AutoMapper;
+using BusinessLogic.Models;
+using BusinessLogic.Services;
 
 namespace MeetingRoomsService.Controllers
 {
@@ -16,17 +14,15 @@ namespace MeetingRoomsService.Controllers
     [ApiController]
     public class ReservationsController : ControllerBase
     {
-        private readonly IGenericRepository<Reservation> _genericRepository;
-        private readonly IGenericRepository<User> _userRepository;
-        private readonly IGenericRepository<MeetingRoom> _meetingRoomRepository;
-        private readonly TimeSpan MaximumReservationTime = new TimeSpan(3,0,0);
+        private readonly ReservationService _service;
+        private readonly UserService _userService;
+        private readonly MeetingRoomService _meetingRoomService;
 
-        public ReservationsController(IGenericRepository<Reservation> genericRepository,
-            IGenericRepository<User> userRepository, IGenericRepository<MeetingRoom> meetingRoomRepository)
+        public ReservationsController(ReservationService service, UserService userService, MeetingRoomService meetingRoomService)
         {
-            _genericRepository = genericRepository;
-            _userRepository = userRepository;
-            _meetingRoomRepository = meetingRoomRepository;
+            _service = service;
+            _userService = userService;
+            _meetingRoomService = meetingRoomService;
         }
 
         // GET: api/Reservations
@@ -34,8 +30,7 @@ namespace MeetingRoomsService.Controllers
         [SwaggerResponse(StatusCodes.Status200OK, Type = typeof(IEnumerable<Reservation>))]
         public async Task<ActionResult<IEnumerable<Reservation>>> GetReservations()
         {
-            return await _genericRepository.Query().Include(x => x.MeetingRoom).
-                Include(x => x.User).ToListAsync();
+            return await _service.GetAll();
         }
 
         // GET: api/Reservations/5
@@ -43,8 +38,7 @@ namespace MeetingRoomsService.Controllers
         [SwaggerResponse(StatusCodes.Status200OK, Type = typeof(Reservation))]
         public async Task<ActionResult<Reservation>> GetReservation(int id)
         {
-            return await _genericRepository.Query().Include(x => x.MeetingRoom).
-                Include(x => x.User).FirstOrDefaultAsync(x => x.Id == id);
+            return await _service.GetById(id);
         }
 
 
@@ -58,10 +52,9 @@ namespace MeetingRoomsService.Controllers
             var config = new MapperConfiguration(cfg => cfg.CreateMap<ReservationPostModel, ReservationUpdateModel>().ForMember(m => m.Id, opt => opt.NullSubstitute(0)));
             var mapper = new Mapper(config);
             var reserveMapped = mapper.Map<ReservationPostModel, ReservationUpdateModel>(reserve);
-            if (checkInitialTime(reserveMapped)) return Conflict("Choose appropriate time");
-            if (await checkReserved(reserveMapped)) return Conflict("Time is taken");
-            var user = await _userRepository.GetByIdAsync(reserve.UserId);
-            var room = await _meetingRoomRepository.GetByIdAsync(reserve.MeetingRoomId);
+            if (await _service.checkChoosedData(reserveMapped)) return Conflict("Wrong time");
+            var user = await _userService.GetById(reserve.UserId);
+            var room = await _meetingRoomService.GetById(reserve.MeetingRoomId);
             var reservation = new Reservation
             {
                 User = user,
@@ -69,9 +62,8 @@ namespace MeetingRoomsService.Controllers
                 TimeFrom = reserve.From,
                 TimeTo = reserve.To
             };
-            await _genericRepository.AddAsync(reservation);
 
-            return Ok(reservation.Id);
+            return Ok((await _service.Add(reservation)).Id);
         }
 
         // DELETE: api/Reservations/5
@@ -79,7 +71,7 @@ namespace MeetingRoomsService.Controllers
         [SwaggerResponse(StatusCodes.Status200OK)]
         public async Task<IActionResult> DeleteReservation(int id)
         {
-            await _genericRepository.Delete(id);
+            await _service.Delete(id);
 
             return Ok();
         }
@@ -90,10 +82,9 @@ namespace MeetingRoomsService.Controllers
         public async Task<IActionResult> UpdateAsync(ReservationUpdateModel reserve)
         {
             if (reserve.Id == 0) return Conflict("Reservation with id 0 doesn't exist");
-            if (checkInitialTime(reserve)) return Conflict("Choose appropriate time");
-            if (await checkReserved(reserve)) return Conflict("Time is taken");
-            var user = await _userRepository.GetByIdAsync(reserve.UserId);
-            var room = await _meetingRoomRepository.GetByIdAsync(reserve.MeetingRoomId);
+            if (await _service.checkChoosedData(reserve)) return Conflict("Wrong time");
+            var user = await _userService.GetById(reserve.UserId);
+            var room = await _meetingRoomService.GetById(reserve.MeetingRoomId);
             var reservation = new Reservation
             {
                 Id = reserve.Id,
@@ -103,24 +94,21 @@ namespace MeetingRoomsService.Controllers
                 TimeTo = reserve.To
             };
 
-            await _genericRepository.UpdateAsync(reservation);
-            return Ok(reservation.Id);
+            return Ok((await _service.Update(reservation)).Id);
         }
 
-        //public async
-       
-        private bool checkInitialTime(ReservationUpdateModel reserve)
+        [HttpGet("{from}, {to}")]
+        public async Task<ActionResult<List<List<Reservation>>>> GetReservationsInInterval(DateTime from, DateTime to)
         {
-            return (reserve.From < DateTime.Now || reserve.To < reserve.From || reserve.To.Subtract(reserve.From) > MaximumReservationTime);
-        }
+            if (from > to) return Conflict("Use appropriate interval");
+            var rooms = await _meetingRoomService.Get();
+            List<List<Reservation>> res = new List<List<Reservation>>();
+            foreach (MeetingRoom room in rooms)
+            {
+                res.Add(await _service.GetInInterval(room, to, from));
+            }
 
-        private Task<bool> checkReserved(ReservationUpdateModel reserve)
-        {
-            var query = _genericRepository.Query()
-                    .Where(x => x.MeetingRoomId == reserve.MeetingRoomId && x.TimeFrom < reserve.To && x.TimeTo > reserve.From);
-            if (reserve.Id != 0)
-                query = query.Where(x => x.Id != reserve.Id);
-            return query.AnyAsync();
+            return res;
         }
     }
 }

@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace MeetingRoomsService.Models
+namespace BusinessLogic.Models
 {
-    public class ReservationContractModel
+    public class ReservationPostModel
     {
         public int UserId { get; set; }
         public int MeetingRoomId { get; set; }
