@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using MeetingRoomsService.DAL;
-using MeetingRoomsService.Models;
+using BusinessLogic.Models;
 using Swashbuckle.AspNetCore.Annotations;
+using BusinessLogic.DAL;
+using BusinessLogic.Services;
 
 namespace MeetingRoomsService.Controllers
 {
@@ -15,11 +15,11 @@ namespace MeetingRoomsService.Controllers
     [ApiController]
     public class MeetingRoomsController : ControllerBase
     {
-        private readonly IGenericRepository<MeetingRoom> _genericRepository;
+        private readonly MeetingRoomService _service;
 
-        public MeetingRoomsController(IGenericRepository<MeetingRoom> genericRepository)
+        public MeetingRoomsController(MeetingRoomService service)
         {
-            _genericRepository = genericRepository;
+            _service = service;
         }
 
         // GET: api/MeetingRooms
@@ -27,7 +27,7 @@ namespace MeetingRoomsService.Controllers
         [SwaggerResponse(StatusCodes.Status200OK, Type = typeof(IEnumerable<MeetingRoom>))]
         public async Task<ActionResult<IEnumerable<MeetingRoom>>> GetMeetingRooms()
         {
-            return await _genericRepository.GetAllAsync();
+            return await _service.GetAll();
         }
 
         // GET: api/MeetingRooms/5
@@ -35,7 +35,7 @@ namespace MeetingRoomsService.Controllers
         [SwaggerResponse(StatusCodes.Status200OK, Type = typeof(MeetingRoom))]
         public async Task<ActionResult<MeetingRoom>> GetMeetingRoom(int id)
         {
-            return await _genericRepository.GetByIdAsync(id);
+            return await _service.GetById(id);
         }
 
         // POST: api/MeetingRooms
@@ -44,9 +44,7 @@ namespace MeetingRoomsService.Controllers
         [SwaggerResponse(StatusCodes.Status200OK, Type = typeof(int))]
         public async Task<IActionResult> PostMeetingRoom(MeetingRoom meetingRoom)
         {
-            await _genericRepository.AddAsync(meetingRoom);
-
-            return Ok(meetingRoom.Id);
+            return Ok((await _service.Add(meetingRoom)).Id);
         }
 
         [HttpDelete]
@@ -65,18 +63,18 @@ namespace MeetingRoomsService.Controllers
         }
 
         // DELETE: api/MeetingRooms/5
-        //[HttpDelete("{id}")]
-        private async Task<IActionResult> DeleteMeetingRoomById(int id)
+        [HttpDelete("byId/{id}")]
+        public async Task<IActionResult> DeleteMeetingRoomById(int id)
         {
-            await _genericRepository.Delete(id);
+            await _service.Delete(id);
 
             return Ok();
         }
 
+        [HttpDelete("byName/{id}")]
         private async Task<IActionResult> DeleteMeetingRoomByName(string name)
         {
-            var meetingRoomId = await _genericRepository.Query().Where(x => x.Name == name).Select(x => x.Id).FirstOrDefaultAsync();
-            await _genericRepository.Delete(meetingRoomId);
+            await _service.Delete((await _service.GetByName(name)).Id);
 
             return Ok();
         }
@@ -85,8 +83,7 @@ namespace MeetingRoomsService.Controllers
         [SwaggerResponse(StatusCodes.Status200OK, Type = typeof(int))]
         public async Task<IActionResult> UpdateAsync(MeetingRoom meetingRoom)
         {
-            await _genericRepository.UpdateAsync(meetingRoom);
-            return Ok(meetingRoom.Id);
+            return Ok((await _service.Update(meetingRoom)).Id);
         }
     }
 }

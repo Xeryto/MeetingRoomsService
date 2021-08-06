@@ -1,19 +1,12 @@
-using MeetingRoomsService.DAL;
-using MeetingRoomsService.Models;
+using BusinessLogic.DAL;
+using BusinessLogic.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace MeetingRoomsService
 {
@@ -30,6 +23,9 @@ namespace MeetingRoomsService
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddTransient(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+            services.AddTransient(typeof(UserService));
+            services.AddTransient(typeof(MeetingRoomService));
+            services.AddTransient(typeof(ReservationService));
 
             services.AddControllers();
             services.AddDbContext<MeetingRoomContext>(builder => builder.UseSqlServer("Data Source=(local);Initial Catalog=MeetingRoomsService; Integrated Security=True"));

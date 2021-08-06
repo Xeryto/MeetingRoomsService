@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace MeetingRoomsService.Models
+﻿namespace BusinessLogic.Models
 {
     public class User
     {
