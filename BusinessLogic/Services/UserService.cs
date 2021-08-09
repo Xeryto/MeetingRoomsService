@@ -1,12 +1,9 @@
 ﻿using BusinessLogic.DAL;
 using BusinessLogic.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace BusinessLogic.Services
@@ -20,29 +17,29 @@ namespace BusinessLogic.Services
             _genericRepository = genericRepository;
         }
 
-        public async Task<ActionResult<IEnumerable<User>>> GetAll()
+        public async Task<IEnumerable<User>> GetAll()
         {
-            return await _genericRepository.Query().ToListAsync();
+            return await _genericRepository.GetAllAsync();
         }
 
         public async Task<User> GetById(int id)
         {
-            return await _genericRepository.Query().Where(x => x.Id == id).FirstOrDefaultAsync();
+            return await _genericRepository.GetByIdAsync(id);
         }
 
         public async Task<User> GetByLogin(string login)
         {
-            return await _genericRepository.Query().Where(x => x.Login == login).FirstOrDefaultAsync();
+            return await GetById(_genericRepository.Query().Where(x => x.Login == login).Select(x => x.Id).FirstOrDefault());
         }
 
         public async Task<User> GetByName (string name)
         {
-            return await _genericRepository.Query().Where(x => x.Name == name).FirstOrDefaultAsync();
+            return await GetById(_genericRepository.Query().Where(x => x.Name == name).Select(x => x.Id).FirstOrDefault());
         }
 
-        public async Task<bool> CheckExists (string login)
+        public bool CheckExists (string login)
         {
-            return await _genericRepository.Query().AnyAsync(x => x.Login == login);
+            return _genericRepository.Query().Any(x => x.Login == login);
         }
 
         public async Task<User> Add(User user)

@@ -1,11 +1,7 @@
 ﻿using BusinessLogic.DAL;
 using BusinessLogic.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace BusinessLogic.Services
@@ -19,24 +15,20 @@ namespace BusinessLogic.Services
             _genericRepository = genericRepository;
         }
 
-        public async Task<List<MeetingRoom>> Get()
+        public async Task<IEnumerable<MeetingRoom>> GetAll()
         {
-            return await _genericRepository.Query().ToListAsync();
-        }
-
-        public async Task<ActionResult<IEnumerable<MeetingRoom>>> GetAll()
-        {
-            return await Get();
+            return await _genericRepository.GetAllAsync();
         }
 
         public async Task<MeetingRoom> GetById(int id)
         {
-            return await _genericRepository.Query().Where(x => x.Id == id).FirstOrDefaultAsync();
+            return await _genericRepository.GetByIdAsync(id);
         }
 
         public async Task<MeetingRoom> GetByName(string name)
         {
-            return await _genericRepository.Query().Where(x => x.Name == name).FirstOrDefaultAsync();
+            return await GetById(_genericRepository.Query().Where(x => x.Name == name)
+                .Select(x => x.Id).FirstOrDefault());
         }
 
         public async Task<MeetingRoom> Add(MeetingRoom meetingRoom)

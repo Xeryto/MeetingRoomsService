@@ -1,12 +1,9 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using BusinessLogic.Models;
 using Swashbuckle.AspNetCore.Annotations;
-using BusinessLogic.DAL;
 using BusinessLogic.Services;
 
 namespace MeetingRoomsService.Controllers
@@ -25,7 +22,7 @@ namespace MeetingRoomsService.Controllers
         // GET: api/MeetingRooms
         [HttpGet]
         [SwaggerResponse(StatusCodes.Status200OK, Type = typeof(IEnumerable<MeetingRoom>))]
-        public async Task<ActionResult<IEnumerable<MeetingRoom>>> GetMeetingRooms()
+        public async Task<IEnumerable<MeetingRoom>> GetMeetingRooms()
         {
             return await _service.GetAll();
         }
@@ -64,6 +61,7 @@ namespace MeetingRoomsService.Controllers
 
         // DELETE: api/MeetingRooms/5
         [HttpDelete("byId/{id}")]
+        [SwaggerResponse(StatusCodes.Status200OK)]
         public async Task<IActionResult> DeleteMeetingRoomById(int id)
         {
             await _service.Delete(id);
@@ -72,6 +70,7 @@ namespace MeetingRoomsService.Controllers
         }
 
         [HttpDelete("byName/{id}")]
+        [SwaggerResponse(StatusCodes.Status200OK)]
         private async Task<IActionResult> DeleteMeetingRoomByName(string name)
         {
             await _service.Delete((await _service.GetByName(name)).Id);

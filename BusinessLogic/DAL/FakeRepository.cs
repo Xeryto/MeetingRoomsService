@@ -6,18 +6,11 @@ using System.Threading.Tasks;
 
 namespace BusinessLogic.DAL
 {
-    public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEntity : class, IId
+    public class FakeRepository<TEntity> : IGenericRepository<TEntity> where TEntity : class, IId
     {
-        protected readonly MeetingRoomContext _context;
-        protected readonly DbSet<TEntity> dbset;
+        protected readonly List<TEntity> dbset = new List<TEntity>();
 
-        public GenericRepository(MeetingRoomContext context)
-        {
-            _context = context;
-            dbset = _context.Set<TEntity>();
-        }
-
-        private bool disposedValue;
+        public FakeRepository() { }
 
         public async Task<TEntity> AddAsync(TEntity entity)
         {
@@ -28,8 +21,7 @@ namespace BusinessLogic.DAL
 
             try
             {
-                await _context.AddAsync(entity);
-                await _context.SaveChangesAsync();
+                dbset.Add(entity);
 
                 return entity;
             }
@@ -39,11 +31,11 @@ namespace BusinessLogic.DAL
             }
         }
 
-        public virtual async Task<IEnumerable<TEntity>> GetAllAsync()
+        public async Task<IEnumerable<TEntity>> GetAllAsync()
         {
             try
             {
-                return await dbset.ToListAsync();
+                return dbset;
             }
             catch (Exception ex)
             {
@@ -60,8 +52,7 @@ namespace BusinessLogic.DAL
 
             try
             {
-                _context.Update(entity);
-                await _context.SaveChangesAsync();
+                dbset[dbset.FindIndex(x => x.Id == entity.Id)] = entity;
                 return entity;
             }
             catch (Exception ex)
@@ -70,27 +61,9 @@ namespace BusinessLogic.DAL
             }
         }
 
-        protected virtual void Dispose(bool disposing)
+        public async Task<TEntity> GetByIdAsync(int id)
         {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    _context.Dispose();
-                }
-                disposedValue = true;
-            }
-        }
-
-        public void Dispose()
-        {
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
-        }
-
-        public virtual async Task<TEntity> GetByIdAsync(int id)
-        {
-            var entity = await dbset.FindAsync(id);
+            var entity = dbset.FirstOrDefault(x => x.Id == id);
 
             if (entity == null)
             {
@@ -105,14 +78,17 @@ namespace BusinessLogic.DAL
             var entity = await GetByIdAsync(id);
 
             dbset.Remove(entity);
-            await _context.SaveChangesAsync();
-
             return entity;
         }
 
         public IQueryable<TEntity> Query()
         {
             return dbset.AsQueryable();
+        }
+
+        public void Dispose()
+        {
+            //throw new NotImplementedException();
         }
     }
 }
