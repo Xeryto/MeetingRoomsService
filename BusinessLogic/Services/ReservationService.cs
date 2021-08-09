@@ -1,7 +1,5 @@
 ﻿using BusinessLogic.DAL;
 using BusinessLogic.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,50 +9,70 @@ namespace BusinessLogic.Services
 {
     public class ReservationService
     {
-        private readonly IGenericRepository<Reservation> _genericRepository;
-        private readonly TimeSpan MaximumReservationTime = new TimeSpan(3, 0, 0);
+        private readonly IReservationRepository _genericRepository;
+        private readonly TimeSpan _maximumReservationTime = new TimeSpan(3, 0, 0);
 
-        public ReservationService (IGenericRepository<Reservation> genericRepository)
+        public ReservationService (IReservationRepository genericRepository)
         {
             _genericRepository = genericRepository;
         }
 
-        public async Task<ActionResult<IEnumerable<Reservation>>> GetAll()
+        public async Task<IEnumerable<Reservation>> GetAll()
         {
-            return await _genericRepository.Query().Include(x => x.MeetingRoom)
-                .Include(x => x.User).ToListAsync();
+            return await _genericRepository.GetAllAsync();
         }
 
         public async Task<Reservation> GetById(int id)
         {
-            return await _genericRepository.Query().Include(x => x.MeetingRoom)
-                .Include(x => x.User).Where(x => x.Id == id).FirstOrDefaultAsync();
+            return await _genericRepository.GetByIdAsync(id);
         }
 
-        public async Task<List<Reservation>> GetInInterval(MeetingRoom room, DateTime to, DateTime from)
+        public async Task<List<Reservation>> GetInInterval(int roomId, DateTime from, DateTime to)
         {
-            return await _genericRepository.Query().Where(x => x.MeetingRoomId == room.Id && x.TimeFrom < to && x.TimeTo > from).ToListAsync();
+            return await _genericRepository.GetInInterval(roomId, from, to);
         }
 
-        public async Task<bool> checkChoosedData(ReservationUpdateModel reserve)
+        private bool CheckChoosedData(ReservationUpdateModel reserve)
         {
             var query = _genericRepository.Query()
                     .Where(x => x.MeetingRoomId == reserve.MeetingRoomId && x.TimeFrom < reserve.To && x.TimeTo > reserve.From);
             if (reserve.Id != 0)
                 query = query.Where(x => x.Id != reserve.Id);
-            Console.WriteLine($"{reserve.From < DateTime.Now}, {reserve.To < reserve.From}, {reserve.To.Subtract(reserve.From) > MaximumReservationTime}, {await query.AnyAsync()}");
-            return reserve.From < DateTime.Now || reserve.To < reserve.From || reserve.To.Subtract(reserve.From) > MaximumReservationTime || await query.AnyAsync();
+            return reserve.From < DateTime.Now || reserve.To < reserve.From || reserve.To.Subtract(reserve.From) > _maximumReservationTime || query.Any();
         }
 
-        public async Task<Reservation> Add(Reservation reservation)
+        public async Task<Tuple<bool, Reservation>> Add(ReservationUpdateModel reserve, User user, MeetingRoom room)
         {
-            await _genericRepository.AddAsync(reservation);
-            return reservation;
+            if (CheckChoosedData(reserve)) return new Tuple<bool, Reservation>(false, null);
+            var reservation = new Reservation
+            {
+                Id = reserve.Id,
+                User = user,
+                UserId = user.Id,
+                MeetingRoom = room,
+                MeetingRoomId = room.Id,
+                TimeFrom = reserve.From,
+                TimeTo = reserve.To
+            };
+            
+            return new Tuple<bool, Reservation>(true, await _genericRepository.AddAsync(reservation));
         }
 
-        public async Task<Reservation> Update(Reservation reservation)
+        public async Task<Tuple<bool, Reservation>> Update(ReservationUpdateModel reserve, User user, MeetingRoom room)
         {
-            return await _genericRepository.UpdateAsync(reservation);
+            if (CheckChoosedData(reserve)) return new Tuple<bool, Reservation>(false, null);
+            var reservation = new Reservation
+            {
+                Id = reserve.Id,
+                User = user,
+                UserId = user.Id,
+                MeetingRoom = room,
+                MeetingRoomId = room.Id,
+                TimeFrom = reserve.From,
+                TimeTo = reserve.To
+            };
+
+            return new Tuple<bool, Reservation>(true, await _genericRepository.UpdateAsync(reservation));
         }
 
         public async Task<Reservation> Delete(int id)

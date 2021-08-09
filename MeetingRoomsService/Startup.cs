@@ -23,12 +23,14 @@ namespace MeetingRoomsService
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddTransient(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+            services.AddTransient(typeof(IReservationRepository),typeof(ReservationRepository));
             services.AddTransient(typeof(UserService));
             services.AddTransient(typeof(MeetingRoomService));
             services.AddTransient(typeof(ReservationService));
 
             services.AddControllers();
-            services.AddDbContext<MeetingRoomContext>(builder => builder.UseSqlServer("Data Source=(local);Initial Catalog=MeetingRoomsService; Integrated Security=True"));
+            services.AddDbContext<MeetingRoomContext>(builder =>
+                builder.UseSqlServer(Configuration.GetConnectionString("ConnectionString")));
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "MeetingRoomsService", Version = "v1" });

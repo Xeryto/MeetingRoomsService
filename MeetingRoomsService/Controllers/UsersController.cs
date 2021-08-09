@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore.Annotations;
-using System.Security.Cryptography;
 using BusinessLogic.Models;
 using BusinessLogic.Services;
 
@@ -25,7 +21,7 @@ namespace MeetingRoomsService.Controllers
         // GET: api/Users
         [HttpGet]
         [SwaggerResponse(StatusCodes.Status200OK, Type = typeof(IEnumerable<User>))]
-        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+        public async Task<IEnumerable<User>> GetUsers()
         {
             return await _service.GetAll();
         }
@@ -46,7 +42,7 @@ namespace MeetingRoomsService.Controllers
         [SwaggerResponse(StatusCodes.Status409Conflict, Type = typeof(string))]
         public async Task<IActionResult> PostUser(User user)
         {
-            if (await _service.CheckExists(user.Login)) return Conflict("User with this login already exists");
+            if (_service.CheckExists(user.Login)) return Conflict("User with this login already exists");
             return Ok((await _service.Add(user)).Id);
         }
 

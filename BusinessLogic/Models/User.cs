@@ -1,6 +1,8 @@
-﻿namespace BusinessLogic.Models
+﻿using BusinessLogic.DAL;
+
+namespace BusinessLogic.Models
 {
-    public class User
+    public class User : IId
     {
         public int Id { get; set; }
         public string Login { get; set; }
