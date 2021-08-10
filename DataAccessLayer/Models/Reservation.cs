@@ -1,7 +1,6 @@
-﻿using BusinessLogic.DAL;
-using System;
+﻿using System;
 
-namespace BusinessLogic.Models
+namespace DataAccessLayer.Models
 {
     public class Reservation : IId
     {
@@ -16,7 +15,7 @@ namespace BusinessLogic.Models
 
         public override bool Equals(object o)
         {
-            return o is Reservation && ((Reservation)o).Id == this.Id && ((Reservation)o).UserId == this.UserId && ((Reservation)o).MeetingRoomId == this.MeetingRoomId && ((Reservation)o).TimeFrom == this.TimeFrom && ((Reservation)o).TimeTo == this.TimeTo && ((Reservation)o).User == this.User && ((Reservation)o).MeetingRoom == this.MeetingRoom;
+            return o is Reservation reservation && reservation.Id == this.Id && reservation.UserId == this.UserId && reservation.MeetingRoomId == this.MeetingRoomId && reservation.TimeFrom == this.TimeFrom && reservation.TimeTo == this.TimeTo && reservation.User == this.User && reservation.MeetingRoom == this.MeetingRoom;
         }
 
         public override int GetHashCode()

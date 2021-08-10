@@ -7,6 +7,7 @@ using Swashbuckle.AspNetCore.Annotations;
 using AutoMapper;
 using BusinessLogic.Models;
 using BusinessLogic.Services;
+using DataAccessLayer.Models;
 
 namespace MeetingRoomsService.Controllers
 {
@@ -82,15 +83,21 @@ namespace MeetingRoomsService.Controllers
             else return Conflict("Wrong time");
         }
 
-        [HttpGet("{from}, {to}")]
-        public async Task<ActionResult<List<List<Reservation>>>> GetReservationsInInterval(DateTime from, DateTime to)
+        [HttpPost("{from}, {to}")]
+        [SwaggerResponse(StatusCodes.Status200OK, Type = typeof(List<ReservationsListModel>))]
+        public async Task<ActionResult<List<ReservationsListModel>>> GetReservationsInInterval(DateTime from, DateTime to)
         {
             if (from > to) return Conflict("Use appropriate interval");
             var rooms = await _meetingRoomService.GetAll();
-            List<List<Reservation>> res = new List<List<Reservation>>();
+            List<ReservationsListModel> res = new();
             foreach (MeetingRoom room in rooms)
             {
-                res.Add(await _service.GetInInterval(room.Id, from, to));
+                ReservationsListModel reservationsListModel = new()
+                {
+                    MeetingRoomId = room.Id,
+                    Reservations = await _service.GetInInterval(room.Id, from, to)
+                };
+                res.Add(reservationsListModel);
             }
 
             return res;

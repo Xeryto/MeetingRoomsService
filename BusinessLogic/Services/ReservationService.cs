@@ -1,5 +1,6 @@
 ﻿using BusinessLogic.DAL;
 using BusinessLogic.Models;
+using DataAccessLayer.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,8 +10,8 @@ namespace BusinessLogic.Services
 {
     public class ReservationService
     {
-        private readonly IReservationRepository _genericRepository;
-        private readonly TimeSpan _maximumReservationTime = new TimeSpan(3, 0, 0);
+        protected readonly IReservationRepository _genericRepository;
+        protected readonly TimeSpan _maximumReservationTime = new(3, 0, 0);
 
         public ReservationService (IReservationRepository genericRepository)
         {
