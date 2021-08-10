@@ -1,6 +1,4 @@
-﻿using BusinessLogic.DAL;
-
-namespace BusinessLogic.Models
+﻿namespace DataAccessLayer.Models
 {
     public class MeetingRoom : IId
     {

@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using DataAccessLayer.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,11 +9,13 @@ namespace BusinessLogic.DAL
 {
     public class FakeRepository<TEntity> : IGenericRepository<TEntity> where TEntity : class, IId
     {
-        protected readonly List<TEntity> dbset = new List<TEntity>();
+        protected readonly List<TEntity> dbset = new();
 
         public FakeRepository() { }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         public async Task<TEntity> AddAsync(TEntity entity)
+
         {
             if (entity == null)
             {
@@ -88,7 +91,9 @@ namespace BusinessLogic.DAL
 
         public void Dispose()
         {
+            GC.SuppressFinalize(this);
             //throw new NotImplementedException();
         }
     }
 }
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously

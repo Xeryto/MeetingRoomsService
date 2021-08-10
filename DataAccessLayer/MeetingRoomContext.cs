@@ -1,7 +1,7 @@
-﻿using BusinessLogic.Models;
+﻿using DataAccessLayer.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace BusinessLogic.DAL
+namespace DataAccessLayer
 {
     public class MeetingRoomContext : DbContext
     {
