@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using FluentAssertions;
 using System.Linq;
+using DataAccessLayer.Models;
 
 namespace BusinessLogic.Test
 {
