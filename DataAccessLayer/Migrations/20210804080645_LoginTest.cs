@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace BusinessLogic.Migrations
+namespace DataAccessLayer.Migrations
 {
     public partial class LoginTest : Migration
     {

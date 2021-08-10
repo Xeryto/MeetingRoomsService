@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using BusinessLogic.Models;
 using BusinessLogic.Services;
+using DataAccessLayer.Models;
 
 namespace MeetingRoomsService.Controllers
 {

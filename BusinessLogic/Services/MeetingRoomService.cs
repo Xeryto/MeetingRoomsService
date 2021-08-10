@@ -1,5 +1,5 @@
 ﻿using BusinessLogic.DAL;
-using BusinessLogic.Models;
+using DataAccessLayer.Models;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,7 +8,7 @@ namespace BusinessLogic.Services
 {
     public class MeetingRoomService
     {
-        private readonly IGenericRepository<MeetingRoom> _genericRepository;
+        protected readonly IGenericRepository<MeetingRoom> _genericRepository;
 
         public MeetingRoomService(IGenericRepository<MeetingRoom> genericRepository)
         {

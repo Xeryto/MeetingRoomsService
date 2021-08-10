@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using BusinessLogic.Models;
+using DataAccessLayer.Models;
 using Swashbuckle.AspNetCore.Annotations;
 using BusinessLogic.Services;
 
