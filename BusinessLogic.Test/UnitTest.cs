@@ -22,16 +22,16 @@ namespace BusinessLogic.Test
         public async Task UserServiceTestAsync()
         {
             IGenericRepository<User> _genericRepository = new FakeRepository<User>();
-            UserService service = new UserService(_genericRepository);
-            List<User> users = new List<User>();
-            User user = new User
+            UserService service = new(_genericRepository);
+            List<User> users = new();
+            User user = new()
             {
                 Id = 1,
                 Login = "abra",
                 Password = "cadabra",
                 Name = "Shapoklyak"
             };
-            User user1 = new User
+            User user1 = new()
             {
                 Id = 2,
                 Login = "xeryto",
@@ -67,14 +67,14 @@ namespace BusinessLogic.Test
         public async Task MeetingRoomServiceTestAsync()
         {
             IGenericRepository<MeetingRoom> _genericRepository = new FakeRepository<MeetingRoom>();
-            MeetingRoomService service = new MeetingRoomService(_genericRepository);
-            List<MeetingRoom> meetingRooms = new List<MeetingRoom>();
-            MeetingRoom meetingRoom = new MeetingRoom
+            MeetingRoomService service = new(_genericRepository);
+            List<MeetingRoom> meetingRooms = new();
+            MeetingRoom meetingRoom = new()
             {
                 Id = 1,
                 Name = "index"
             };
-            MeetingRoom meetingRoom1 = new MeetingRoom
+            MeetingRoom meetingRoom1 = new()
             {
                 Id = 2,
                 Name = "pablo"
@@ -108,35 +108,35 @@ namespace BusinessLogic.Test
             DateTime incorrectTo = incorrectFrom.AddHours(2);
             DateTime intervalFrom = from;
             DateTime intervalTo = intervalFrom.AddDays(3);
-            FakeReservationRepository _genericRepository = new FakeReservationRepository();
-            ReservationService service = new ReservationService(_genericRepository);
-            List<Reservation> reservations = new List<Reservation>();
-            List<Reservation> intervalReservations = new List<Reservation>();
-            User user = new User
+            FakeRepository<Reservation> _genericRepository = new();
+            ReservationService service = new(_genericRepository);
+            List<Reservation> reservations = new();
+            List<Reservation> intervalReservations = new();
+            User user = new()
             {
                 Id = 1,
                 Login = "abra",
                 Password = "cadabra",
                 Name = "Shapoklyak"
             };
-            User user1 = new User
+            User user1 = new()
             {
                 Id = 2,
                 Login = "xeryto",
                 Password = "6325",
                 Name = "Vanya"
             };
-            MeetingRoom meetingRoom = new MeetingRoom
+            MeetingRoom meetingRoom = new()
             {
                 Id = 1,
                 Name = "index"
             };
-            MeetingRoom meetingRoom1 = new MeetingRoom
+            MeetingRoom meetingRoom1 = new()
             {
                 Id = 2,
                 Name = "pablo"
             };
-            ReservationUpdateModel reserve = new ReservationUpdateModel
+            ReservationUpdateModel reserve = new()
             {
                 Id = 1,
                 UserId = user.Id,
@@ -144,7 +144,7 @@ namespace BusinessLogic.Test
                 From = from,
                 To = to
             };
-            ReservationUpdateModel reserve1 = new ReservationUpdateModel
+            ReservationUpdateModel reserve1 = new()
             {
                 Id = 2,
                 UserId = user1.Id,
@@ -152,7 +152,7 @@ namespace BusinessLogic.Test
                 From = from1,
                 To = to1
             };
-            ReservationUpdateModel incorrectReserve = new ReservationUpdateModel
+            ReservationUpdateModel incorrectReserve = new()
             {
                 Id = 3,
                 UserId = user1.Id,
@@ -160,7 +160,7 @@ namespace BusinessLogic.Test
                 From = incorrectFrom,
                 To = incorrectTo
             };
-            var reservation = new Reservation
+            Reservation reservation = new()
             {
                 Id = reserve.Id,
                 User = user,
@@ -170,7 +170,7 @@ namespace BusinessLogic.Test
                 TimeFrom = reserve.From,
                 TimeTo = reserve.To
             };
-            Reservation reservation1 = new Reservation
+            Reservation reservation1 = new()
             {
                 Id = reserve1.Id,
                 UserId = user1.Id,
@@ -183,16 +183,15 @@ namespace BusinessLogic.Test
             reservations.Add(reservation);
             reservations.Add(reservation1);
             intervalReservations.Add(reservation1);
-            var result = await service.Add(reserve, user, meetingRoom);
-            result.Should()
+            (await service.Add(reserve, user, meetingRoom)).Should()
                 .Be(new Tuple<bool, Reservation>(true, reservation));
             (await service.Add(reserve1, user1, meetingRoom1)).Should()
                 .Be(new Tuple<bool, Reservation>(true, reservation1));
             (await service.Add(incorrectReserve, user1, meetingRoom)).Should()
                 .Be(new Tuple<bool, Reservation>(false, null));
-            (await service.GetAll()).Should().Equal(reservations);
-            (await service.GetById(1)).Should().Be(reservation);
-            service.Invoking(s => s.GetById(4)).Should().Throw<Exception>()
+            (await _genericRepository.GetAllAsync()).Should().Equal(reservations);
+            (await _genericRepository.GetByIdAsync(1)).Should().Be(reservation);
+            _genericRepository.Invoking(s => s.GetByIdAsync(4)).Should().Throw<Exception>()
                 .WithMessage("Entity with id 4 doesn't exist");
             reserve.From = reserve.From.AddDays(5);
             reserve.To = reserve.From.AddHours(2);
@@ -200,8 +199,9 @@ namespace BusinessLogic.Test
             reservation.TimeTo = reserve.To;
             (await service.Update(reserve, user, meetingRoom)).Should()
                 .Be(new Tuple<bool, Reservation>(true, reservation));
-            (await service.GetInInterval(meetingRoom1.Id, intervalFrom, intervalTo)).Should()
-                .Equal(intervalReservations);
+            _genericRepository.Query()
+                .Where(x => x.MeetingRoomId == meetingRoom1.Id && x.TimeFrom < intervalTo && x.TimeTo > intervalFrom)
+                .ToList().Should().Equal(intervalReservations);
             reserve1.From = reserve.From.AddHours(-1);
             reserve1.To = reserve1.From.AddHours(2);
             reserve1.MeetingRoomId = meetingRoom.Id;

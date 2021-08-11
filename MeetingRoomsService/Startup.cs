@@ -24,7 +24,6 @@ namespace MeetingRoomsService
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddTransient(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-            services.AddTransient(typeof(IReservationRepository),typeof(ReservationRepository));
             services.AddTransient(typeof(UserService));
             services.AddTransient(typeof(MeetingRoomService));
             services.AddTransient(typeof(ReservationService));
