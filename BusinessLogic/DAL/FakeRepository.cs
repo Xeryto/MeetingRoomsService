@@ -19,7 +19,9 @@ namespace BusinessLogic.DAL
         {
             if (entity == null)
             {
+#pragma warning disable CA2208 // Instantiate argument exceptions correctly
                 throw new ArgumentNullException($"{nameof(AddAsync)} entity must not be null");
+#pragma warning restore CA2208 // Instantiate argument exceptions correctly
             }
 
             try
@@ -50,7 +52,9 @@ namespace BusinessLogic.DAL
         {
             if (entity == null)
             {
+#pragma warning disable CA2208 // Instantiate argument exceptions correctly
                 throw new ArgumentNullException($"{nameof(AddAsync)} entity must not be null");
+#pragma warning restore CA2208 // Instantiate argument exceptions correctly
             }
 
             try

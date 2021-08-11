@@ -10,22 +10,22 @@ namespace BusinessLogic.Services
 {
     public class ReservationService
     {
-        protected readonly IReservationRepository _genericRepository;
+        protected readonly IGenericRepository<Reservation> _genericRepository;
         protected readonly TimeSpan _maximumReservationTime = new(3, 0, 0);
 
-        public ReservationService (IReservationRepository genericRepository)
+        public ReservationService (IGenericRepository<Reservation> genericRepository)
         {
             _genericRepository = genericRepository;
         }
 
-        public async Task<IEnumerable<Reservation>> GetAll()
+        public async Task<List<Reservation>> GetAll()
         {
-            return await _genericRepository.GetAllAsync();
+            return await _genericRepository.GetAllReservations();
         }
 
         public async Task<Reservation> GetById(int id)
         {
-            return await _genericRepository.GetByIdAsync(id);
+            return await _genericRepository.GetReservationById(id);
         }
 
         public async Task<List<Reservation>> GetInInterval(int roomId, DateTime from, DateTime to)
